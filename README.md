@@ -62,6 +62,3 @@ environment.
 | 69–75 | Patient-derived organoids (Amendment 3) |
 | 76–99i | Capture, reliability, paired engine, attenuation and equivalence tests, harmonization, Holm, lineage, dataset-by-endpoint analysis, validation of `selbench` against the analyses, numbers ledger, source data |
 | 100a–107 | Transfer prediction, known-answer simulation, Fig. 1 example, CRISPR gene dependency, DrEval normalized-metric decomposition, attenuation power |
-
-The confirmatory scripts were frozen by SHA-256 before the confirmation data were retrieved; the freeze manifests and
-pre-registration are part of the study's deposit, not of this repository.
