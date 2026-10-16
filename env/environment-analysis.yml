@@ -1,0 +1,14 @@
+# DRAFT conda specification of the analysis environment (replaces ../.venv; Python 3.8). Not tested.
+#   conda env create -f env/environment-analysis.yml && conda activate selectivity-ceiling-analysis
+# Pins: requirements-venv.rebuild.txt (the packages the .venv scripts import and their runtime dependencies, at the
+# versions the original .venv imported). Run with OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 and an
+# empty PYTHONPATH. The DrEval and GPU environments are specified in conda-venv-dreval.explicit.txt +
+# requirements-venv-dreval.lock.txt and requirements-venv-gpu.lock.txt (see Dockerfile).
+name: selectivity-ceiling-analysis
+channels:
+  - defaults
+dependencies:
+  - python=3.8.13
+  - pip
+  - pip:
+      - -r requirements-venv.rebuild.txt

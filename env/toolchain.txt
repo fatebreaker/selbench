@@ -1,0 +1,11 @@
+# Toolchain; recorded 2026-10-15T00:58:27+00:00
+
+tectonic: 'tectonic 0.15.0Tectonic 0.15.0' (/home/htran/.local/bin/tectonic; called by scripts/16_build_documents.py as `tectonic --keep-logs main.tex` and `supplement.tex`)
+tectonic bundle: https://relay.fullyjustified.net/default_bundle_v33.tar (digest 6ffe055852f8faf66c0acbe1a7fb27f87b869a90bad1204f3bf4d9683f597c7c; resolves to https://data1.fullyjustified.net/tlextras-2022.0r0.tar)
+OpenTimestamps client: opentimestamps-client 0.7.2 (pip), installed in a session-scratch virtualenv that no longer exists (Reviewer 3, M8); reinstall with `pip install opentimestamps-client==0.7.2`
+ots on PATH now: None
+conda: conda 22.9.0
+OS: Linux-5.15.0-161-generic-x86_64-with-glibc2.17
+glibc: glibc 2.35
+CPU: Intel(R) Xeon(R) Gold 6226R CPU @ 2.90GHz
+cores: 64

@@ -1,0 +1,18 @@
+# code only: data, results, models and build outputs live outside this repository
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+data/
+results/
+figures/
+manuscript/
+logs/
+*.csv.gz
+*.parquet
+*.h5
+*.pt
+*.pkl
+*.npz

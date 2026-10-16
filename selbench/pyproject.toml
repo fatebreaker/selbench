@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "selbench"
+version = "0.2.0"
+description = "Selectivity-aware evaluation of drug-response predictions (axis and selective terms, paired cross-dataset scoring)"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = ["numpy", "pandas", "scipy"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools]
+py-modules = ["selbench", "box1"]

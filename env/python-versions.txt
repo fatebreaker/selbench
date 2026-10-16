@@ -1,0 +1,96 @@
+# Interpreters of the selectivity_ceiling study; recorded 2026-10-15T00:58:27+00:00 by scripts/63_repro_inventory.py
+
+PYTHONPATH of the analysis shell (~/.bashrc): '/home/htran/generation/med_preferences/rl/i4h-workflows/workflows/robotic_surgery/scripts:'
+  (an unrelated project directory plus a trailing empty entry, i.e. the working directory; the scripts do not import from it; unset it in a clean rebuild)
+
+== .venv
+python 3.8.13  (3.8.13 (default, Mar 28 2022, 11:38:47) 
+[GCC 7.5.0])
+executable /data/home_beta/htran/generation/med_preferences/discovery/.venv/bin/python -> /data/home_beta/htran/miniconda3/bin/python3.8
+prefix /data/home_beta/htran/generation/med_preferences/discovery/.venv; base_prefix /home/htran/miniconda3
+pyvenv.cfg: home = /home/htran/miniconda3/bin | include-system-site-packages = true | version = 3.8.13
+user site enabled: True (/home/htran/.local/lib/python3.8/site-packages)
+sys.path:
+  
+  /home/htran/generation/med_preferences/rl/i4h-workflows/workflows/robotic_surgery/scripts
+  /data/home_beta/htran/generation/med_preferences/discovery/selectivity_ceiling/scripts
+  /home/htran/miniconda3/lib/python38.zip
+  /home/htran/miniconda3/lib/python3.8
+  /home/htran/miniconda3/lib/python3.8/lib-dynload
+  /data/home_beta/htran/generation/med_preferences/discovery/.venv/lib/python3.8/site-packages
+  /home/htran/.local/lib/python3.8/site-packages
+  /home/htran/miniconda3/lib/python3.8/site-packages
+distributions: 304 found, 293 effective, 11 shadowed by an earlier copy on sys.path
+key packages:
+  numpy        1.22.4         base interpreter  /home/htran/miniconda3/lib/python3.8/site-packages/numpy/__init__.py
+  scipy        1.8.0          user-site (~/.local)  /home/htran/.local/lib/python3.8/site-packages/scipy/__init__.py
+  pandas       1.4.3          user-site (~/.local)  /home/htran/.local/lib/python3.8/site-packages/pandas/__init__.py
+  pyarrow      9.0.0          base interpreter  /home/htran/miniconda3/lib/python3.8/site-packages/pyarrow/__init__.py
+  sklearn      1.3.2          environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv/lib/python3.8/site-packages/sklearn/__init__.py
+  rdkit        2023.09.6      environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv/lib/python3.8/site-packages/rdkit/__init__.py
+  openpyxl     3.1.5          environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv/lib/python3.8/site-packages/openpyxl/__init__.py
+  xlrd         2.0.1          environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv/lib/python3.8/site-packages/xlrd/__init__.py
+  h5py         3.10.0         environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv/lib/python3.8/site-packages/h5py/__init__.py
+  matplotlib   3.5.1          user-site (~/.local)  /home/htran/.local/lib/python3.8/site-packages/matplotlib/__init__.py
+  statsmodels  0.13.5         user-site (~/.local)  /home/htran/.local/lib/python3.8/site-packages/statsmodels/__init__.py
+  torch        1.8.1+cu111    base interpreter  /home/htran/miniconda3/lib/python3.8/site-packages/torch/__init__.py  cuda 11.1
+  requests     2.32.3         user-site (~/.local)  /home/htran/.local/lib/python3.8/site-packages/requests/__init__.py
+BLAS/LAPACK: {'blas_ilp64_opt_info': ['openblas64_', 'openblas64_'], 'blas_opt_info': None}
+  loaded: openblas 0.3.18 kernels SkylakeX (/data/home_beta/htran/miniconda3/lib/python3.8/site-packages/numpy.libs/libopenblas64_p-r0-2f7c42d4.3.18.so)
+  loaded: openmp None kernels None (/data/home_beta/htran/generation/med_preferences/discovery/.venv/lib/python3.8/site-packages/scikit_learn.libs/libgomp-a34b3233.so.1.0.0)
+  loaded: openblas 0.3.17 kernels SkylakeX (/data/home_beta/htran/.local/lib/python3.8/site-packages/scipy.libs/libopenblasp-r0-8b9e111f.3.17.so)
+  loaded: openmp None kernels None (/data/home_beta/htran/miniconda3/lib/python3.8/site-packages/torch/lib/libgomp-7c85b1e2.so.1)
+
+== .venv-dreval
+python 3.11.17  (3.11.17 (main, Oct  1 2026, 20:17:42) [GCC 14.3.0])
+executable /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/bin/python -> /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/bin/python3.11
+prefix /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval; base_prefix /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval
+pyvenv.cfg: none (conda environment)
+user site enabled: True (/home/htran/.local/lib/python3.11/site-packages)
+sys.path:
+  
+  /home/htran/generation/med_preferences/rl/i4h-workflows/workflows/robotic_surgery/scripts
+  /data/home_beta/htran/generation/med_preferences/discovery/selectivity_ceiling/scripts
+  /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python311.zip
+  /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11
+  /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/lib-dynload
+  /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/site-packages
+distributions: 175 found, 175 effective, 0 shadowed by an earlier copy on sys.path
+key packages:
+  numpy        2.4.6          environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/site-packages/numpy/__init__.py
+  scipy        1.17.1         environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/site-packages/scipy/__init__.py
+  pandas       2.3.3          environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/site-packages/pandas/__init__.py
+  pyarrow      26.0.0         environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/site-packages/pyarrow/__init__.py
+  sklearn      1.9.1          environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/site-packages/sklearn/__init__.py
+  matplotlib   3.11.2         environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/site-packages/matplotlib/__init__.py
+  statsmodels  0.14.6         environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/site-packages/statsmodels/__init__.py
+  torch        2.7.1+cu126    environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/site-packages/torch/__init__.py  cuda 12.6
+  drevalpy     1.6.0          environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/site-packages/drevalpy/__init__.py
+  requests     2.34.2         environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/site-packages/requests/__init__.py
+BLAS/LAPACK: {'blas': 'scipy-openblas', 'lapack': 'scipy-openblas'}
+  loaded: openblas 0.3.30 kernels SkylakeX (/data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/site-packages/scipy.libs/libscipy_openblas-6cdc3b4a.so)
+  loaded: openblas 0.3.31.188.0 kernels SkylakeX (/data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/site-packages/numpy.libs/libscipy_openblas64_-32a4b2a6.so)
+  loaded: openmp None kernels None (/data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/site-packages/scikit_learn.libs/libgomp-e985bcbb.so.1.0.0)
+  loaded: openmp None kernels None (/data/home_beta/htran/generation/med_preferences/discovery/.venv-dreval/lib/python3.11/site-packages/torch/lib/libgomp.so.1)
+
+== .venv-gpu
+python 3.10.12  (3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0])
+executable /data/home_beta/htran/generation/med_preferences/discovery/.venv-gpu/bin/python -> /usr/bin/python3.10
+prefix /data/home_beta/htran/generation/med_preferences/discovery/.venv-gpu; base_prefix /usr
+pyvenv.cfg: home = /usr/bin | include-system-site-packages = false | version = 3.10.12
+user site enabled: False (None)
+sys.path:
+  
+  /home/htran/generation/med_preferences/rl/i4h-workflows/workflows/robotic_surgery/scripts
+  /data/home_beta/htran/generation/med_preferences/discovery/selectivity_ceiling/scripts
+  /usr/lib/python310.zip
+  /usr/lib/python3.10
+  /usr/lib/python3.10/lib-dynload
+  /data/home_beta/htran/generation/med_preferences/discovery/.venv-gpu/lib/python3.10/site-packages
+distributions: 26 found, 26 effective, 0 shadowed by an earlier copy on sys.path
+key packages:
+  numpy        1.24.4         environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv-gpu/lib/python3.10/site-packages/numpy/__init__.py
+  rdkit        2023.09.6      environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv-gpu/lib/python3.10/site-packages/rdkit/__init__.py
+  torch        2.5.1+cu124    environment  /data/home_beta/htran/generation/med_preferences/discovery/.venv-gpu/lib/python3.10/site-packages/torch/__init__.py  cuda 12.4
+BLAS/LAPACK: {'blas_ilp64_opt_info': ['openblas64_', 'openblas64_'], 'blas_opt_info': None}
+
