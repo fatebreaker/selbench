@@ -9,9 +9,6 @@ per-drug correlation exactly into a general-sensitivity (axis) term and a drug-s
 as ratios to a perfect predictor's terms, compares them with drug-agnostic baselines on the same metric, and scores
 identical predictions against two datasets on matched cells so that cross-dataset changes can be attributed.
 
-This repository contains **code only**. Data, results, trained models, frozen predictions, figures and the
-manuscript are not included (see [What is not here](#what-is-not-here)).
-
 ## Layout
 
 | Path | Contents |
@@ -68,15 +65,3 @@ environment.
 
 The confirmatory scripts were frozen by SHA-256 before the confirmation data were retrieved; the freeze manifests and
 pre-registration are part of the study's deposit, not of this repository.
-
-## What is not here
-
-- Input data (third-party screens and omics; obtain them from their providers under their licences).
-- Processed data, results, trained models, frozen predictions, figures, source data and the manuscript.
-- Pre-registration documents, freeze manifests and timestamp proofs.
-
-These are large or are deposited separately with the study.
-
-## Licence
-
-To be added by the authors.
