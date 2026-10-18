@@ -455,6 +455,7 @@ def tables(H):
     T += round2_tables(H)
     T += round4_tables(H)
     T += round5_tables(H)
+    T += round8_tables(H)
     return T
 
 
@@ -1474,3 +1475,72 @@ def round5_tables(H):
         rows, 'lp{5.6cm}lllr')))
     return out
 
+
+
+R8 = RESULTS / 'revision_round8'
+
+
+def round8_tables(H):
+    """Axis-borne reproducibility by mechanism (108) and what the ridge adds to a canonical biomarker (109)."""
+    table, esc = H['table'], H['esc']
+    out = []
+    if (R8 / 'mechanism_axis' / 'class_table.csv').exists():
+        K = pd.read_csv(R8 / 'mechanism_axis' / 'class_table.csv')
+        S = json.loads((R8 / 'mechanism_axis' / 'summary.json').read_text())
+        rows = [[esc(r['class']), int(r['drugs']), f"{r['median_axis_share']:.2f}", f"{r['median_rho_raw']:.2f}",
+                 f"{r['median_rho_sel']:.2f}", est(r['median_raw_minus_sel'], r['ci_lo'], r['ci_hi'], 3),
+                 f"{100 * r['frac_raw_above_sel_by_margin']:.0f}\\%"] for r in K.to_dict('records')]
+        rows.append(['All multi-screen drugs', S['n_drugs'], f"{S['all_median_axis_share']:.2f}", f"{S['all_median_rho_raw']:.2f}",
+                     f"{S['all_median_rho_sel']:.2f}", est(S['all_median_raw_minus_sel'], *S['all_ci'], 3),
+                     f"{100 * S['all_frac_raw_above_sel_by_margin']:.0f}\\%"])
+        sp = S['spearman_ci']
+        cap = (r'\textbf{Cross-screen agreement that rests on the general-sensitivity axis, by mechanism.} For each of the '
+               f"{S['n_drugs']} multi-screen drugs, the axis share is the median over screens of $r_{{zg}}^2$, and raw and "
+               r'selective agreement are the mean cross-screen correlations of the profiles and of the selective residuals. '
+               r'Their paired difference (raw minus selective) is the agreement carried by the axis: positive when another '
+               r'screen reproduces the axis-aligned part of a profile, so that removing the axis removes reproducible signal. '
+               r'Curated classes with $\geq$5 drugs; median paired difference with a 95\% drug-bootstrap interval (5,000 '
+               r'draws) and the share of drugs whose raw agreement exceeds the selective by more than 0.05. Across drugs, '
+               f"the difference rose with the axis share (Spearman {S['spearman_axis_share_vs_difference']:.2f}, "
+               f"{sp[0]:.2f}--{sp[1]:.2f}). Exploratory and descriptive; intervals are not adjusted for multiplicity.")
+        out.append(('MechanismAxis', table(cap, 'tab:mechanismaxis', ['Class', 'Drugs', 'Axis share', 'Raw', 'Selective',
+                                                                      'Raw $-$ selective (95\\% CI)', 'Raw $>$ sel.\\ + 0.05'],
+                                           rows, 'lrrrrll')))
+    if (R8 / 'biomarker_increment' / 'perdrug.csv').exists():
+        P = pd.read_csv(R8 / 'biomarker_increment' / 'perdrug.csv')
+        Q = pd.read_csv(R8 / 'biomarker_increment' / 'pooled.csv').set_index('set')
+        P = P.sort_values(['tier', 'diff_combined_minus_biomarker'], ascending=[True, False])
+        rows = []
+        for r in P.to_dict('records'):
+            rows.append([esc(r['drug_name']), esc(r['biomarker']), r['tier'],
+                         est(r['c2_biomarker'], r['c2_biomarker_ci_lo'], r['c2_biomarker_ci_hi']),
+                         est(r['c2_ridge'], r['c2_ridge_ci_lo'], r['c2_ridge_ci_hi']),
+                         est(r['c2_ridge_beyond'], r['c2_ridge_beyond_ci_lo'], r['c2_ridge_beyond_ci_hi']),
+                         est(r['c2_combined'], r['c2_combined_ci_lo'], r['c2_combined_ci_hi']),
+                         est(r['diff_combined_minus_biomarker'], r['diff_combined_minus_biomarker_ci_lo'],
+                             r['diff_combined_minus_biomarker_ci_hi'])])
+        for lab in Q.index:
+            q = Q.loc[lab]
+            rows.append([f"Pooled, {lab.split(',')[0]} ({int(q.n_drugs)})", '', '',
+                         est(q.c2_biomarker, q.c2_biomarker_ci_lo, q.c2_biomarker_ci_hi),
+                         est(q.c2_ridge, q.c2_ridge_ci_lo, q.c2_ridge_ci_hi),
+                         est(q.c2_ridge_beyond, q.c2_ridge_beyond_ci_lo, q.c2_ridge_beyond_ci_hi),
+                         est(q.c2_combined, q.c2_combined_ci_lo, q.c2_combined_ci_hi),
+                         est(q.diff_combined_minus_biomarker, q.diff_combined_minus_biomarker_ci_lo,
+                             q.diff_combined_minus_biomarker_ci_hi)])
+        qc = Q.loc['core, primary biomarker per drug']
+        cap = (r'\textbf{What the cell-blind model adds to a canonical biomarker.} Drugs with a pre-specified primary '
+               r'biomarker (Supplementary Table~\stCanonical) measured in $\geq$3 discovery screens, scored with the '
+               r'primary $c^2$ estimator on the same terms and on the cells where the biomarker, the kernel ridge (selective '
+               r"target) and both evaluation screens are observed. Ridge beyond biomarker: the ridge's predictions after "
+               r"least-squares regression on the biomarker and both evaluation screens' axes, which uses no response of the "
+               r'drug. Combined: biomarker and ridge weighted by least squares on the training screen\'s selective residual '
+               r'(the evaluation screens are not used). 95\% cell-bootstrap intervals per drug; pooled rows are ratios of '
+               r'sums over drugs with drug-cluster bootstrap intervals (2,000 draws). Over the core drugs the combination '
+               f"exceeded the biomarker for {int(qc.n_combined_above_biomarker_ci_excludes_0)} drugs and fell below it for "
+               f"{int(qc.n_biomarker_above_combined_ci_excludes_0) or 'none'} (interval excluding 0). Exploratory; intervals are not "
+               r'adjusted for multiplicity.')
+        out.append(('BiomarkerIncrement', table(cap, 'tab:biomarkerincrement', ['Drug', 'Biomarker', 'Tier', 'Biomarker $c^2$', 'Ridge $c^2$',
+                                                              'Ridge beyond biomarker', 'Combined', 'Combined $-$ biomarker'],
+                                       rows, 'llllllll')))
+    return out
