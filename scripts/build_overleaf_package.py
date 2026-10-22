@@ -18,8 +18,8 @@ TOP = ['main.tex', 'supplement.tex', 'supplementary_tables.tex', 'references.tex
        'supp_amendment3.tex', 'cover_letter_nature_methods.md']
 SECTIONS = ['abstract', 'introduction', 'results', 'discussion', 'box1', 'methods', 'figures', 'extended_data']
 
-# Passages revised for a colleague's comments (round 8, 18 October 2026) and suggestion (round 9, 22 October
-# 2026): (file, first words, last words).
+# Passages revised for a colleague's comments (round 8, 18 October 2026; yellow, \colleague) and for the experiment
+# a colleague suggested (round 9, 22 October 2026; green, \colleaguesuggestion): (file, first words, last words[, macro]).
 SPANS = [
     ('sections/results.tex', "We use ``selectivity'' operationally,", 'about sparing healthy tissue.'),
     ('sections/results.tex', 'but not for every mechanism:', r'Table~\stMechanismAxis).'),
@@ -33,24 +33,28 @@ SPANS = [
     ('supplement_tables.tex', 'Cross-screen agreement that rests on the general-sensitivity axis, by mechanism.', None),
     ('supplement_tables.tex', 'What the cell-blind model adds to a canonical biomarker.', None),
     # round 9 (a colleague's suggestion, 22 October 2026): choosing cell lines for follow-up
-    ('sections/results.tex', 'The same held when models chose cell lines for follow-up', r'Table~\stFollowUp).'),
-    ('sections/discussion.tex', 'When models chose cell lines for follow-up,', 'picks were drug-specific.'),
-    ('sections/methods.tex', 'This analysis was added late in the study.', r'Table~\stFollowUp).'),
-    ('sections/extended_data.tex', 'Choosing cell lines for follow-up.', None),
-    ('supplement_tables.tex', 'Choosing cell lines for follow-up.', None),
+    ('sections/results.tex', 'The same held when models chose cell lines for follow-up', r'Table~\stFollowUp).', 'colleaguesuggestion'),
+    ('sections/discussion.tex', 'When models chose cell lines for follow-up,', 'picks were drug-specific.', 'colleaguesuggestion'),
+    ('sections/methods.tex', 'This analysis was added late in the study.', r'Table~\stFollowUp).', 'colleaguesuggestion'),
+    ('sections/extended_data.tex', 'Choosing cell lines for follow-up.', None, 'colleaguesuggestion'),
+    ('supplement_tables.tex', 'Choosing cell lines for follow-up.', None, 'colleaguesuggestion'),
 ]
 PREAMBLE = r"""\usepackage{xcolor}
 % soul v3.2 is bundled with the project: older copies (soul 3.1, as on Overleaf's TeX Live 2025) hide highlighted text
 % under the newer LaTeX kernel. The fallback below keeps v3.2 working with kernels that lack \RawParEnd.
 \providecommand{\RawParEnd}{}
 \usepackage{soul}
-% Yellow marks the passages revised in response to a colleague's comments and suggestion (October 2026).
-% For a clean copy, change \highlighttrue to \highlightfalse.
+% Marked revisions: yellow, in response to a colleague's comments (18 October 2026); green, the follow-up experiment a
+% colleague suggested (22 October 2026). For a clean copy, change \highlighttrue to \highlightfalse.
 \newif\ifhighlight \highlighttrue
-\sethlcolor{yellow}
-\DeclareRobustCommand{\colleague}[1]{\ifhighlight\hl{#1}\else#1\fi}
+\definecolor{hlsuggestion}{RGB}{160,232,160}
+\DeclareRobustCommand{\colleague}[1]{\ifhighlight{\sethlcolor{yellow}\hl{#1}}\else#1\fi}
+\DeclareRobustCommand{\colleaguesuggestion}[1]{\ifhighlight{\sethlcolor{hlsuggestion}\hl{#1}}\else#1\fi}
 \soulregister{\textbf}{1}
 """
+COLOUR_KEY = (r"\ifhighlight\noindent{\small Marked revisions: \colleague{yellow, in response to a colleague's comments "
+              r"(18 October 2026)}; \colleaguesuggestion{green, the follow-up experiment a colleague suggested (22 October "
+              r"2026)}.}\par\medskip\fi" + '\n')
 
 
 def words(t):
@@ -58,7 +62,8 @@ def words(t):
 
 
 def apply_highlights(stage):
-    for rel, a, b in SPANS:
+    for rel, a, b, *mac in SPANS:
+        macro = mac[0] if mac else 'colleague'
         f = stage / rel
         txt = f.read_text()
         pat = words(a) if b is None else words(a) + r'.*?' + words(b)
@@ -67,13 +72,13 @@ def apply_highlights(stage):
         m = m[0]
         assert not re.search(r'\n\s*\n', m.group(0)), (rel, a, 'crosses a paragraph')
         span = re.sub(r'(\\st[A-Za-z]+)', r'{\1}', m.group(0))   # braced: soul highlights the number with the rest
-        f.write_text(txt[:m.start()] + r'\colleague{' + span + '}' + txt[m.end():])
+        f.write_text(txt[:m.start()] + '\\' + macro + '{' + span + '}' + txt[m.end():])
     for rel in ['main.tex', 'supplementary_tables.tex']:
         f = stage / rel
         txt = f.read_text()
         anchor = '\\input{supp_refs.tex}\n'
-        assert txt.count(anchor) == 1, rel
-        f.write_text(txt.replace(anchor, anchor + PREAMBLE))
+        assert txt.count(anchor) == 1 and txt.count('\\maketitle\n') == 1, rel
+        f.write_text(txt.replace(anchor, anchor + PREAMBLE).replace('\\maketitle\n', '\\maketitle\n' + COLOUR_KEY))
 
 
 if STAGE.exists():
@@ -113,12 +118,13 @@ supplement_tables.tex, supplement_figures.tex, supp_prereg.tex, supp_deviations.
 supp_amendment*.tex) and are overwritten when the documents are rebuilt; comment on them rather than editing.
 Numbers in the text are checked against the results by a numbers ledger, so please flag changed numbers.
 
-Yellow highlights mark the passages revised in response to a colleague's comments (18 October 2026) and suggestion
-(22 October 2026: choosing cell lines for follow-up): in the Results, Discussion and Methods, and the titles of the new
-Extended Data figure and Supplementary Tables. To remove them, change
-\\highlighttrue to \\highlightfalse near the top of main.tex and supplementary_tables.tex. The highlighting uses
-the soul package, v3.2, bundled here (soul.sty, soul-ori.sty, soulutf8.sty): older versions, such as the one in
-Overleaf's TeX Live 2025, hide the highlighted words under the current LaTeX kernel.
+Marked revisions, in the Results, Discussion and Methods and the titles of the new Extended Data figure and
+Supplementary Tables (a colour key is printed under each title):
+  yellow  in response to a colleague's comments (18 October 2026)
+  green   the follow-up experiment a colleague suggested (22 October 2026: choosing cell lines for follow-up)
+To remove them, change \\highlighttrue to \\highlightfalse near the top of main.tex and supplementary_tables.tex.
+The highlighting uses the soul package, v3.2, bundled here (soul.sty, soul-ori.sty, soulutf8.sty): older versions,
+such as the one in Overleaf's TeX Live 2025, hide the highlighted words under the current LaTeX kernel.
 
 Placeholders in square brackets [ ... ] (authors, affiliations, statements, AI-use accountability, verification,
 access terms, DOIs) are for the authors to complete.
