@@ -167,7 +167,7 @@ def table1():
            r'(gCSI and NCI-60: original pre-registration; CCLE, FIMM, GRAY and BeatAML: Amendment~1; PDX\_Bruna: '
            r'Amendment~2, whose manifest was stamped with OpenTimestamps and is anchored in Bitcoin block 971474). '
            r'Entries give the statistic and one-sided $P$; estimates with intervals are in Supplementary '
-           r'Table~\stEstimates\ and Extended Data Fig.~6. $^\dagger$Not met. $^\ddagger$Met under the registered rule; the frozen '
+           r'Table~\stEstimates\ and Extended Data Fig.~7. $^\dagger$Not met. $^\ddagger$Met under the registered rule; the frozen '
            "script's flag was false because $P$ underflowed to zero (Supplementary Note~2). "
            r'n.e., not estimable (fewer than three drugs per class); n.i., NCI-60 $P$ values are not interpretable, '
            r'because its 39,682 single-tested compounds on 58 lines are not independent units. gCSI H3 rests on four '
@@ -205,7 +205,7 @@ def table1():
 
 # supplementary tables are numbered in order of first citation in the main text; the rest follow in build order
 ORDER = ['Screens', 'Protocols', 'AxisPairs', 'Variance', 'SharedActive', 'Lineage', 'Growth', 'AxisContents', 'Variants',
-         'LeaderboardMetrics', 'Capture', 'Reliability', 'LineageScores', 'Rankings', 'Normalized', 'CrossTargets', 'Censoring',
+         'LeaderboardMetrics', 'Capture', 'Reliability', 'LineageScores', 'Rankings', 'FollowUp', 'Normalized', 'CrossTargets', 'Censoring',
          'RangeTail', 'Attenuation', 'EndpointMatched', 'Equivalence', 'Retention', 'RetentionCalibration', 'CrossModes',
          'ImproveWithin', 'ImproveCross', 'Retrain', 'TwoByTwo', 'Dependency', 'DependencyAxis', 'RetrainCross', 'HarmonizationGDSC', 'ClassesCurated', 'MechanismAxis', 'Ceiling', 'CeilingFactor', 'Canonical', 'BiomarkerIncrement', 'Adjusted', 'RetrainTarget',
          'SimulationCeiling',

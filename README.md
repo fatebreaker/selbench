@@ -63,3 +63,5 @@ environment.
 | 76–99i | Capture, reliability, paired engine, attenuation and equivalence tests, harmonization, Holm, lineage, dataset-by-endpoint analysis, validation of `selbench` against the analyses, numbers ledger, source data |
 | 100a–107 | Transfer prediction, known-answer simulation, Fig. 1 example, CRISPR gene dependency, DrEval normalized-metric decomposition, attenuation power |
 | 108–109 | Cross-screen agreement carried by the general-sensitivity axis, by mechanism; what the cell-blind model adds to a canonical biomarker |
+| 110 | Choosing cell lines for follow-up: top-10 picks per drug from CTRP v2-trained models checked in GDSC2 (exploratory; plan timestamped before analysis) |
+| `build_overleaf_package.py` | Assembles the manuscript's Overleaf package |

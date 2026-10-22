@@ -526,6 +526,85 @@ def T(rows, cols):
     return df[order] if len(df) else pd.DataFrame(columns=list(cols))
 
 
+# ---------------------------------------------------------------------------------------------- Extended Data Fig. 5
+TKD = 'results/revision_round9/topk_selection'
+
+
+def _topk_rows(P, xname, yname):
+    rows = []
+    for c in P.get('scatter'):
+        lab = sidx(c.args[0])
+        for i, (x, y) in enumerate(zip(num(c.args[0]), num(c.args[1]))):
+            if lab is None:
+                rows.append({'model': 'random picks', 'rule': '', xname: x, yname: y, 'element': 'random'})
+            else:
+                m, _, u = str(lab[i]).partition('|')
+                rows.append({'model': m, 'rule': u, xname: x, yname: y, 'element': 'rule'})
+    return rows
+
+
+@conv('panel_topk_rules')
+def c_topk_rules(P):
+    rows = _topk_rows(P, 'raw_hits_pct', 'drug_specific_hits_pct')
+    cols = OrderedDict(model='predictor (or random picks)', rule='R, raw picks; S, own axis removed',
+                       raw_hits_pct="picks in GDSC2's most sensitive tenth of the candidates, % (x)",
+                       drug_specific_hits_pct="picks in the top tenth of the residual on GDSC2's axis, % (y)",
+                       element='selection rule, or the random expectation')
+    df = T(rows, cols)
+    m = df.element == 'rule'
+    chk = [check(df, c, f'{TKD}/rules.csv', [('model', 'model'), ('rule', 'rule')], u, mask=m, transform=lambda v: v * 100)
+           for c, u in [('raw_hits_pct', 'o1'), ('drug_specific_hits_pct', 'o2')]]
+    S = upstream(f'{TKD}/summary.json')
+    chk.append(check_values('raw_hits_pct', df[~m].raw_hits_pct, [S['random_expectation'] * 100], f'{TKD}/summary.json',
+                            'random_expectation (x100)'))
+    return df, cols, chk, ''
+
+
+@conv('panel_topk_distinct')
+def c_topk_distinct(P):
+    rows = []
+    for c in P.get('scatter'):
+        for lab, x in zip(sidx(c.args[0]) or [], num(c.args[0])):
+            mm, _, u = str(lab).partition('|')
+            rows.append({'model': mm, 'rule': u, 'distinct_pct': x, 'row': c.ctx['name']})
+    cols = OrderedDict(model='predictor', rule='R, raw picks; S, own axis removed',
+                       distinct_pct='distinct cell lines among all picks over the drugs, % (x)',
+                       row='row of the panel (vertical position within a row is jitter)')
+    df = T(rows, cols)
+    chk = [check(df, 'distinct_pct', f'{TKD}/rules.csv', [('model', 'model'), ('rule', 'rule')], 'distinct_share',
+                 transform=lambda v: v * 100)]
+    return df, cols, chk, ''
+
+
+@conv('panel_topk_choice')
+def c_topk_choice(P):
+    rows, score = [], None
+    for c in P.get('scatter'):
+        score = c.ctx['score']
+        for m, x, y in zip(sidx(c.args[1]), num(c.args[0]), num(c.args[1])):
+            rows.append({'model': m, 'group': c.ctx['grp'], 'within_ctrpv2': x, 'drug_specific_hits_pct': y,
+                         'element': 'predictor'})
+    S = upstream(f'{TKD}/summary.json')
+    rows.append({'model': f'Spearman correlation ({score}, panel text)', 'element': 'summary',
+                 'spearman_r': S[f'choice_all_{score}_spearman'], 'spearman_ci_lo': S[f'choice_all_{score}_spearman_ci'][0],
+                 'spearman_ci_hi': S[f'choice_all_{score}_spearman_ci'][1]})
+    cols = OrderedDict(model='predictor', group='trained, cancer type or general sensitivity',
+                       within_ctrpv2=f'{score} per-drug correlation within CTRP v2 (59, setting CTRPv2_LNIC50, panel '
+                                     'main; x)',
+                       drug_specific_hits_pct="drug-specific hit rate of the raw picks in GDSC2, % (y)",
+                       element='predictor, or the Spearman correlation printed in the panel',
+                       spearman_r='Spearman correlation across the 29 predictors',
+                       spearman_ci_lo='95% drug-bootstrap interval, lower', spearman_ci_hi='95% interval, upper')
+    df = T(rows, cols)
+    m = df.element == 'predictor'
+    W = 'results/revision_retrain/within_summary.csv'
+    chk = [check(df, 'within_ctrpv2', W, [('model', 'model')], score, mask=m,
+                 up_filter=lambda U: U[(U.setting == 'CTRPv2_LNIC50') & (U.panel == 'main')]),
+           check(df, 'drug_specific_hits_pct', f'{TKD}/rules.csv', [('model', 'model')], 'o2', mask=m,
+                 up_filter=lambda U: U[U.rule == 'R'], transform=lambda v: v * 100)]
+    return df, cols, chk, ''
+
+
 # ---------------------------------------------------------------------------------------------- Figure 1
 @conv('panel_schematic')
 def c_schematic(P):

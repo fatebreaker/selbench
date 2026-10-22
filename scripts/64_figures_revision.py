@@ -966,8 +966,9 @@ def panel_sim_leakage(ax):
 # (figure5 of the round-5 layout: replaced by the regrouped figures below)
 
 
-def ed_figure6():
-    """Extended Data Fig. 6 (formerly Extended Data Fig. 2): the frozen confirmatory analyses, reported as estimates."""
+def ed_figure7():
+    """Extended Data Fig. 7 (formerly Extended Data Figs. 2 and 6): the frozen confirmatory analyses, reported as
+    estimates."""
     fig = plt.figure(figsize=(W, 5.6))
     gs = fig.add_gridspec(2, 1, height_ratios=[1.0, 1.0], hspace=0.62)
     axes = panel_estimates(fig, gs[0])
@@ -990,7 +991,7 @@ def ed_figure6():
         F.panel_patient_transfer(ax, folder, show, f'selective transfer per drug\n({lab})', top=top,
                                  gap=0.06 if folder != 'confirmation_BeatAML' else 0.045)
         ax.set_xticklabels(['non-\nrepr.', 'inter-\nmed.', 'repr.'], fontsize=5.8)
-    save(fig, 'extended_data_fig6_confirmation')
+    save(fig, 'extended_data_fig7_confirmation')
 
 
 # ================================================================== Figure 3: second benchmark (IMPROVE) and retraining
@@ -1562,19 +1563,124 @@ def ed_figure3():
     save(fig, 'extended_data_fig3_leaderboard')
 
 
-def ed_figure5():
-    """Extended Data Fig. 5: proportional attenuation: identical predictions in GDSC1 and in IMPROVE's other datasets
-    (formerly Figs. 2c and 3c)."""
+def ed_figure6():
+    """Extended Data Fig. 6 (formerly Extended Data Fig. 5): proportional attenuation: identical predictions in GDSC1
+    and in IMPROVE's other datasets (formerly Figs. 2c and 3c)."""
     fig = plt.figure(figsize=(W, 3.0))
     gs = fig.add_gridspec(1, 2, width_ratios=[0.8, 1.0], wspace=0.45, left=0.09, right=0.97, top=0.82, bottom=0.17)
     ax = fig.add_subplot(gs[0]); panel_label(ax, 'a', x=-0.3, y=1.1); panel_paired(ax)
     ax = fig.add_subplot(gs[1]); panel_label(ax, 'b', x=-0.25, y=1.1); panel_improve_transfer(ax)
-    save(fig, 'extended_data_fig5_attenuation')
+    save(fig, 'extended_data_fig6_attenuation')
 
+# ----------------------------------------------------------------------------------------------------------------
+# Extended Data Fig. 5 (round 9): choosing cell lines for follow-up
+TK = RESULTS / 'revision_round9' / 'topk_selection'
+TK_NOT_POOLED = ['LB:SVR']
+
+
+def topk_load():
+    T = pd.read_csv(TK / 'rules.csv')
+    T.index = T.model + '|' + T.rule                    # model|rule labels the plotted points (99i source data)
+    S = json.loads((TK / 'summary.json').read_text())
+    return T[~T.model.isin(TK_NOT_POOLED)], S
+
+
+def panel_topk_rules(ax, T, S):
+    pct = 100
+    L = T[T.group == 'learned']
+    for u, face in [('R', BLUE), ('S', 'white')]:
+        d = L[L.rule == u]
+        ax.scatter(d.o1 * pct, d.o2 * pct, s=11, facecolor=face, edgecolor=BLUE, lw=0.6, zorder=3)
+    g = T[(T.group == 'general sensitivity')]
+    ax.scatter(g.o1 * pct, g.o2 * pct, s=13, marker='^', color=BASE_COL, lw=0, zorder=3)
+    c = T[(T.group == 'cancer type') & (T.rule == 'R')]
+    ax.scatter(c.o1 * pct, c.o2 * pct, s=13, marker='s', color=BASE_COL, lw=0, zorder=3)
+    s2 = T[T.group == 'second screen']
+    ax.scatter(s2.o1 * pct, s2.o2 * pct, s=26, marker='*', color=ORANGE, lw=0, zorder=3)
+    rnd = S['random_expectation'] * pct
+    ax.scatter([rnd], [rnd], s=16, marker='x', color=GRAY, lw=0.8, zorder=3)
+    ax.axhline(rnd, color=GRAY, lw=0.5, ls=(0, (2, 2)))
+    ax.axvline(rnd, color=GRAY, lw=0.5, ls=(0, (2, 2)))
+    lab = {('ref:CTRPv2 measured axis', 'R'): ('general sensitivity measured\nin CTRP v2 (same lines for most drugs)',
+                                               (40, 21)),
+           ('ref:CTRPv2 measurement', 'R'): ('second screen', (37, 52)),
+           ('ref:CTRPv2 measurement', 'S'): ('second screen, axis removed', (43, 39)),
+           ('LB:NaiveTissueDrugMeanPredictor', 'R'): ('cancer type', (3, 31)),
+           ('PerDrugRidgeRaw', 'R'): ('best model', (42, 31))}
+    for (m, u), (txt, xy) in lab.items():
+        r = T[(T.model == m) & (T.rule == u)].iloc[0]
+        ax.annotate(txt, (r.o1 * pct, r.o2 * pct), xytext=xy, textcoords='data', fontsize=5.2, color=INK2,
+                    ha='left', va='center', arrowprops=dict(arrowstyle='-', color=GRAY, lw=0.4, shrinkA=1, shrinkB=2))
+    ax.text(rnd + 0.8, 3.2, 'random', fontsize=5.0, color=GRAY)
+    ax.set_xlim(0, 65)
+    ax.set_ylim(0, 55)
+    ax.set_xlabel('picks in GDSC2\'s most sensitive tenth (%)')
+    ax.set_ylabel('picks sensitive beyond general\nsensitivity in GDSC2 (%)')
+    hgrid(ax)
+    hs = [plt.Line2D([], [], marker='o', ls='', color=BLUE, ms=3.2, label='learned, raw picks'),
+          plt.Line2D([], [], marker='o', ls='', mfc='white', mec=BLUE, ms=3.2, label='learned, own axis removed'),
+          plt.Line2D([], [], marker='^', ls='', color=BASE_COL, ms=3.4, label='general sensitivity'),
+          plt.Line2D([], [], marker='s', ls='', color=BASE_COL, ms=3.0, label='cancer type')]
+    ax.legend(handles=hs, loc='lower right', fontsize=5.2, handletextpad=0.1, borderaxespad=0.1, labelspacing=0.25,
+              frameon=True, facecolor='white', edgecolor='none', framealpha=1)
+
+
+def panel_topk_distinct(ax, T):
+    groups = [('learned, raw picks', (T.group == 'learned') & (T.rule == 'R'), BLUE, 'o'),
+              ('learned, own axis removed', (T.group == 'learned') & (T.rule == 'S'), BLUE, 'o'),
+              ('cancer type', (T.group == 'cancer type') & (T.rule == 'R'), BASE_COL, 's'),
+              ('general sensitivity', T.group == 'general sensitivity', BASE_COL, '^'),
+              ('second screen', (T.group == 'second screen') & (T.rule == 'R'), ORANGE, '*')]
+    rng = np.random.default_rng(0)
+    for i, (name, m, col, mk) in enumerate(groups):
+        v = T[m].distinct_share * 100
+        y = i + rng.uniform(-0.17, 0.17, len(v)) if len(v) > 1 else np.array([i])
+        face = 'white' if 'removed' in name else col
+        ax.scatter(v, y, s=11 if mk != '*' else 24, marker=mk, facecolor=face, edgecolor=col, lw=0.6, zorder=3)
+    ax.set_yticks(range(len(groups)))
+    ax.set_yticklabels([g[0] for g in groups], fontsize=5.8)
+    ax.set_ylim(len(groups) - 0.5, -0.5)
+    ax.set_xlim(0, 60)
+    ax.set_xlabel('distinct cell lines among\nall picks (%)')
+    ax.xaxis.grid(True, color=GRID, lw=0.5)
+    ax.set_axisbelow(True)
+
+
+def panel_topk_choice(ax, T, S, score, xlab):
+    W = pd.read_csv(RT / 'within_summary.csv')
+    W = W[(W.setting == 'CTRPv2_LNIC50') & (W.panel == 'main')].set_index('model')
+    R = T[(T.rule == 'R') & T.group.isin(['learned', 'cancer type', 'general sensitivity'])
+          & T.model.isin(W.index)].set_index('model')
+    for grp, col, mk in [('learned', BLUE, 'o'), ('cancer type', BASE_COL, 's'), ('general sensitivity', BASE_COL, '^')]:
+        d = R[R.group == grp]
+        ax.scatter(W.loc[d.index, score], d.o2 * 100, s=11, marker=mk, color=col, lw=0, zorder=3)
+    r, ci = S[f'choice_all_{score}_spearman'], S[f'choice_all_{score}_spearman_ci']
+    ax.text(0.03, 0.97, f'Spearman {r:.2f}\n({ci[0]:.2f} to {ci[1]:.2f})', transform=ax.transAxes, fontsize=5.2,
+            color=INK2, va='top')
+    ax.set_ylim(5, 40)
+    ax.set_xlabel(xlab)
+    ax.set_ylabel('picks sensitive beyond general\nsensitivity in GDSC2 (%)')
+    hgrid(ax)
+
+
+def ed_figure5():
+    """Extended Data Fig. 5: choosing cell lines for follow-up (110_topk_selection.py; exploratory, timestamped plan)."""
+    T, S = topk_load()
+    fig = plt.figure(figsize=(W, 4.5))
+    gs = fig.add_gridspec(2, 1, hspace=0.55)
+    top = gs[0].subgridspec(1, 2, width_ratios=[1.5, 1.0], wspace=0.75)
+    bot = gs[1].subgridspec(1, 2, wspace=0.45)
+    ax = fig.add_subplot(top[0]); panel_label(ax, 'a', x=-0.14, y=1.03); panel_topk_rules(ax, T, S)
+    ax = fig.add_subplot(top[1]); panel_label(ax, 'b', x=-0.55, y=1.03); panel_topk_distinct(ax, T)
+    ax = fig.add_subplot(bot[0]); panel_label(ax, 'c', x=-0.16, y=1.03)
+    panel_topk_choice(ax, T, S, 'median_selective', 'selective correlation within CTRP v2 (median over drugs)')
+    ax = fig.add_subplot(bot[1]); panel_label(ax, 'd', x=-0.16, y=1.03)
+    panel_topk_choice(ax, T, S, 'median_raw', 'raw correlation within CTRP v2 (median over drugs)')
+    save(fig, 'extended_data_fig5_selection')
 
 
 if __name__ == '__main__':
-    which = sys.argv[1:] or ['1', '2', '3', '4', '5', 'ed1', 'ed2', 'ed3', 'ed4', 'ed5', 'ed6']
+    which = sys.argv[1:] or ['1', '2', '3', '4', '5', 'ed1', 'ed2', 'ed3', 'ed4', 'ed5', 'ed6', 'ed7']
     for w in which:
         fn = globals().get(f'ed_figure{w[2:]}') if w.startswith('ed') else globals().get(f'figure{w}')
         if fn is None:

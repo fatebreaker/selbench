@@ -456,6 +456,7 @@ def tables(H):
     T += round4_tables(H)
     T += round5_tables(H)
     T += round8_tables(H)
+    T += round9_tables(H)
     return T
 
 
@@ -1544,3 +1545,84 @@ def round8_tables(H):
                                                               'Ridge beyond biomarker', 'Combined', 'Combined $-$ biomarker'],
                                        rows, 'llllllll')))
     return out
+
+
+R9 = RESULTS / 'revision_round9'
+RULE_ORDER = ['second screen', 'learned', 'cancer type', 'general sensitivity', 'not pooled']
+
+
+def pct(v, lo, hi):
+    return f'{100 * v:.0f} ({100 * lo:.0f} to {100 * hi:.0f})'.replace('-', '$-$')
+
+
+def signed(v, d=1):
+    return f'{v:.{d}f}'.replace('-', '$-$')
+
+
+SENS_LABEL = {'k = 5': '$k$ = 5', 'k = 20': '$k$ = 20', 'drugs with >= 30 candidates': r'drugs with $\geq$30 candidates',
+              'GDSC2 ln IC50 outcome': r'GDSC2 ln~IC$_{50}$ outcome, where defined',
+              'S rule on CTRPv2 measured axis': "axis removed using CTRP v2's measured axis"}
+
+
+def round9_tables(H):
+    """Choosing cell lines for follow-up (110; exploratory, timestamped plan)."""
+    table, esc = H['table'], H['esc']
+    if not (R9 / 'topk_selection' / 'rules.csv').exists():
+        return []
+    T = pd.read_csv(R9 / 'topk_selection' / 'rules.csv')
+    S = json.loads((R9 / 'topk_selection' / 'summary.json').read_text())
+    V = pd.read_csv(R9 / 'topk_selection' / 'sensitivity.csv').set_index('analysis')
+    T['g'] = T.group.map(RULE_ORDER.index)
+    T = T.sort_values(['g', 'rule', 'o2'], ascending=[True, True, False])
+    name = {'ref:CTRPv2 measured axis': 'CTRP v2 measured axis', 'ref:CTRPv2 measurement': 'CTRP v2 measurement'}
+    ours = ['EnsembleMF', 'EnsembleMFSelective', 'PerDrugRidgeRaw', 'PerDrugRidgeSelective', 'FitnessOnlyRidge']
+    rows = []
+    for r in T.to_dict('records'):
+        m = name.get(r['model'], r['model'].replace('LB:', ''))
+        m = m + ' (this study)' if r['model'] in ours else m
+        rows.append([esc(m), r['group'], 'raw' if r['rule'] == 'R' else 'axis removed',
+                     pct(r['o1'], r['o1_ci_lo'], r['o1_ci_hi']), pct(r['o2'], r['o2_ci_lo'], r['o2_ci_hi']),
+                     pct(r['o2_minus_cancer_type'], r['o2_minus_cancer_type_ci_lo'], r['o2_minus_cancer_type_ci_hi'])
+                     if r['group'] != 'cancer type' or r['rule'] != 'R' else '--',
+                     f"{100 * r['distinct_share']:.0f}", f"{r['mean_jaccard']:.2f}"])
+    sens = '; '.join(
+        f"{SENS_LABEL[lab]} ({int(V.loc[lab, 'drugs'])} drugs): axis removed minus raw "
+        f"{signed(100 * V.loc[lab, 'S_minus_R_o2_median_over_models'])} points (lower for "
+        f"{int(V.loc[lab, 'S_minus_R_o2_n_below'])}, higher for {int(V.loc[lab, 'S_minus_R_o2_n_above'])}), Spearman "
+        f"{V.loc[lab, 'choice_all_median_selective_spearman']:.2f} against {V.loc[lab, 'choice_all_median_raw_spearman']:.2f}"
+        for lab in V.index)
+    lo, hi = S['S_minus_R_o2_median_over_models_ci']
+    cap = (r'\textbf{Choosing cell lines for follow-up.} Exploratory; the plan (rules, outcomes, comparisons) was '
+           r'timestamped (OpenTimestamps) before any selection was scored and was followed without change. Models were '
+           r'trained on CTRP v2 ln~IC$_{50}$ (DrEval, leave-cell-line-out); for each of '
+           f"{S['drugs']} drugs (at least {S['min_candidates']} candidates: held-out cell lines predicted by every model and "
+           f"measured in both screens; median {S['median_candidates']:.0f}) each rule picked the {S['k']} candidates with "
+           r"the highest predicted sensitivity (raw) or with the highest residual of the prediction on the model's own "
+           r'leave-drug-out axis (axis removed). Hits: picks in the top tenth of the candidates in GDSC2 (CurveCurator AUC) '
+           r"by sensitivity (raw hits) or by its residual on GDSC2's axis (drug-specific hits); percentages with 95\% "
+           r'drug-bootstrap intervals (2,000 draws). Random picks: '
+           f"{100 * S['random_expectation']:.0f}\\%. Drug-agnostic picks exceed random on drug-specific hits because one "
+           r"screen's axis does not remove all general sensitivity (picks by GDSC2's own axis, post hoc: "
+           f"{100 * S['post_hoc_o2_of_gdsc2_own_axis_picks']:.0f}\\%). Distinct: cell lines picked over all drugs as a "
+           r"percentage of all picks; Jaccard: mean overlap of two drugs' picks. Over the "
+           f"{S['n_learned']} learned models, removing the own axis changed drug-specific hits by a median of "
+           f"{signed(100 * S['S_minus_R_o2_median_over_models'])} points ({ci(100 * lo, 100 * hi, 1)}; lower for "
+           f"{S['S_minus_R_o2_n_below']}, higher for {S['S_minus_R_o2_n_above'] or 'none'}). Across the "
+           f"{S['choice_all_n_models']} predictors, the drug-specific hit rate of raw picks correlated with the "
+           f"within-CTRP v2 selective median correlation at Spearman {S['choice_all_median_selective_spearman']:.2f} "
+           f"({ci(*S['choice_all_median_selective_spearman_ci'])}) and with the raw median correlation at "
+           f"{S['choice_all_median_raw_spearman']:.2f} ({ci(*S['choice_all_median_raw_spearman_ci'])}; difference "
+           f"{S['choice_all_spearman_difference']:.2f}, {ci(*S['choice_all_spearman_difference_ci'])}); over the learned "
+           f"models {S['choice_learned_median_selective_spearman']:.2f} and {S['choice_learned_median_raw_spearman']:.2f} "
+           f"(difference {S['choice_learned_spearman_difference']:.2f}, {ci(*S['choice_learned_spearman_difference_ci'])}). "
+           r'Post hoc, without the three published models that are drug-agnostic within each split (ElasticNet, Lasso, '
+           f"MultiViewRandomForest): Spearman {S['choice_post_hoc_learned_not_agnostic_median_selective_spearman']:.2f} "
+           f"against {S['choice_post_hoc_learned_not_agnostic_median_raw_spearman']:.2f} (difference "
+           f"{S['choice_post_hoc_learned_not_agnostic_spearman_difference']:.2f}, "
+           f"{ci(*S['choice_post_hoc_learned_not_agnostic_spearman_difference_ci'])}), and removing the own axis lowered "
+           f"drug-specific hits for {S['post_hoc_not_agnostic_S_minus_R_o2_n_below']} of {S['post_hoc_not_agnostic_n']} "
+           f"models and raised them for {S['post_hoc_not_agnostic_S_minus_R_o2_n_above'] or 'none'}. "
+           f"Sensitivity analyses: {sens}. Intervals are not adjusted for multiplicity.")
+    return [('FollowUp', table(cap, 'tab:followup', ['Predictor', 'Group', 'Picks', 'Raw hits, \\%',
+                                                    'Drug-specific hits, \\%', 'vs cancer type, points',
+                                                    'Distinct, \\%', 'Jaccard'], rows, 'llllllrr'))]
