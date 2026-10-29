@@ -1,5 +1,6 @@
-"""Assemble manuscript/overleaf_package.zip from the current manuscript sources (figure paths rewritten), with the
-passages revised for the colleague's comments (round 8) highlighted in yellow (switch: \\highlighttrue in main.tex).
+"""Assemble manuscript/overleaf_package.zip from the current manuscript sources (figure paths rewritten). Passages
+listed in SPANS are highlighted for a review copy (switch: \\highlighttrue in main.tex); with SPANS empty the package
+is a clean copy, without the soul package, the colour key or the README section on marks.
 Usage: python build_overleaf_package.py STAGE_DIR VERSION "DATE" MAIN/SUPP/TABLES_PAGES   (run 15 and 16 first)."""
 import re
 import shutil
@@ -18,9 +19,10 @@ TOP = ['main.tex', 'supplement.tex', 'supplementary_tables.tex', 'references.tex
        'supp_amendment3.tex', 'cover_letter_nature_methods.md']
 SECTIONS = ['abstract', 'introduction', 'results', 'discussion', 'box1', 'methods', 'figures', 'extended_data']
 
-# Passages revised for a colleague's comments (round 8, 18 October 2026; yellow, \colleague) and for the experiment
-# a colleague suggested (round 9, 22 October 2026; green, \colleaguesuggestion): (file, first words, last words[, macro]).
-SPANS = [
+# Passages to mark: (file, first words, last words[, macro]); \colleague is yellow, \colleaguesuggestion green. Empty
+# since v14 (29 October 2026): the co-authors reviewed the marked rounds 8 (a colleague's comments, 18 October) and 9
+# (the follow-up experiment a colleague suggested, 22 October), and the marks were removed. Their spans, for reference:
+SPANS_V13 = [
     ('sections/results.tex', "We use ``selectivity'' operationally,", 'about sparing healthy tissue.'),
     ('sections/results.tex', 'but not for every mechanism:', r'Table~\stMechanismAxis).'),
     ('sections/results.tex', 'a comparison that favours the biomarker,', r'Table~\stBiomarkerIncrement).'),
@@ -39,6 +41,7 @@ SPANS = [
     ('sections/extended_data.tex', 'Choosing cell lines for follow-up.', None, 'colleaguesuggestion'),
     ('supplement_tables.tex', 'Choosing cell lines for follow-up.', None, 'colleaguesuggestion'),
 ]
+SPANS = []
 PREAMBLE = r"""\usepackage{xcolor}
 % soul v3.2 is bundled with the project: older copies (soul 3.1, as on Overleaf's TeX Live 2025) hide highlighted text
 % under the newer LaTeX kernel. The fallback below keeps v3.2 working with kernels that lack \RawParEnd.
@@ -62,6 +65,8 @@ def words(t):
 
 
 def apply_highlights(stage):
+    if not SPANS:
+        return
     for rel, a, b, *mac in SPANS:
         macro = mac[0] if mac else 'colleague'
         f = stage / rel
@@ -93,7 +98,7 @@ for rel in TOP + [f'sections/{s}.tex' for s in SECTIONS]:
 apply_highlights(STAGE)
 for f in sorted(figs):
     shutil.copy2(FIG / f, STAGE / 'figures' / f)
-for f in sorted((MS / 'overleaf_extra').glob('*.sty')):   # soul v3.2 (LPPL), see PREAMBLE
+for f in sorted((MS / 'overleaf_extra').glob('*.sty')) if SPANS else []:   # soul v3.2 (LPPL), see PREAMBLE
     shutil.copy2(f, STAGE / f.name)
 leftover = [p for p in STAGE.rglob('*.tex') if '../' in p.read_text()]
 assert not leftover, leftover
@@ -118,7 +123,13 @@ supplement_tables.tex, supplement_figures.tex, supp_prereg.tex, supp_deviations.
 supp_amendment*.tex) and are overwritten when the documents are rebuilt; comment on them rather than editing.
 Numbers in the text are checked against the results by a numbers ledger, so please flag changed numbers.
 
-Marked revisions, in the Results, Discussion and Methods and the titles of the new Extended Data figure and
+{{MARKS}}Placeholders in square brackets [ ... ] (authors, affiliations, statements, AI-use accountability, verification,
+access terms, DOIs) are for the authors to complete.
+
+Changes made in Overleaf are not synced back automatically: download the project (Menu > Download > Source) to
+return them.
+"""
+MARKS_TEXT = """Marked revisions, in the Results, Discussion and Methods and the titles of the new Extended Data figure and
 Supplementary Tables (a colour key is printed under each title):
   yellow  in response to a colleague's comments (18 October 2026)
   green   the follow-up experiment a colleague suggested (22 October 2026: choosing cell lines for follow-up)
@@ -126,13 +137,8 @@ To remove them, change \\highlighttrue to \\highlightfalse near the top of main.
 The highlighting uses the soul package, v3.2, bundled here (soul.sty, soul-ori.sty, soulutf8.sty): older versions,
 such as the one in Overleaf's TeX Live 2025, hide the highlighted words under the current LaTeX kernel.
 
-Placeholders in square brackets [ ... ] (authors, affiliations, statements, AI-use accountability, verification,
-access terms, DOIs) are for the authors to complete.
-
-Changes made in Overleaf are not synced back automatically: download the project (Menu > Download > Source) to
-return them.
 """
-(STAGE / 'README.txt').write_text(readme)
+(STAGE / 'README.txt').write_text(readme.replace('{MARKS}', MARKS_TEXT if SPANS else ''))
 
 out = MS / 'overleaf_package.zip'
 tmp = out.with_suffix('.zip.tmp')
